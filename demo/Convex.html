@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+
+<html>
+
+<head>
+    <title>Example 06.01 - Advanced 3D geometries - Convex Hull</title>
+    <script type="text/javascript" src="../libs/three.js"></script>
+
+    <script type="text/javascript" src="../libs/stats.js"></script>
+    <script type="text/javascript" src="../libs/ConvexGeometry.js"></script>
+    <script type="text/javascript" src="../libs/dat.gui.js"></script>
+    <script type="text/javascript" src="../libs/miniQuery.js"></script>
+    <style>
+        body {
+            /* set margin to 0 and overflow to hidden, to go fullscreen */
+            margin: 0;
+            overflow: hidden;
+        }
+    </style>
+</head>
+<body>
+
+<div id="Stats-output">
+</div>
+<!-- Div which will hold the Output -->
+<div id="WebGL-output">
+</div>
+
+<!-- Javascript code that runs our Three.js examples -->
+<script type="text/javascript">
+	var stats,scene,camera,renderer;
+	var step = 0;
+	
+	var spGroup,hullMesh;
+    var controls = new function () {
+        // we need the first child, since it's a multimaterial
+
+        this.redraw = function () {
+            scene.remove(spGroup);
+            scene.remove(hullMesh);
+            generatePoints();
+
+        };
+
+    };
+    // once everything is loaded, we run our Three.js stuff.
+    function init() {
+
+        stats = initStats("Stats-output");
+        // create a scene, that will hold all our elements such as objects, cameras and lights.
+        scene = new THREE.Scene();
+        // create a camera, which defines where we're looking at.
+        camera = initCamera(scene,{x:-30,y:40,z:30},lookAtPosition = new THREE.Vector3(10, 0, 0));
+        // create a render and set the size
+        renderer = initRenderer();		
+        // add the output of the renderer to the html element
+        getWebGLOutPut("WebGL-output",renderer);
+        
+        generatePoints();
+        // setup the control gui
+		GUIControl();
+    }
+    
+    function GUIControl()
+    {
+        var gui = new dat.GUI();
+        gui.add(controls, 'redraw');
+    }
+    
+    function generatePoints() {
+        // add 10 random spheres
+        var points = [];
+        for (var i = 0; i < 20; i++) {
+            var randomX = -15 + Math.round(Math.random() * 30);
+            var randomY = -15 + Math.round(Math.random() * 30);
+            var randomZ = -15 + Math.round(Math.random() * 30);
+
+            points.push(new THREE.Vector3(randomX, randomY, randomZ));
+        }
+
+        spGroup = customPoints(points);
+
+        // use the same points to create a convexgeometry
+        hullMesh = createMesh(
+        	points,
+        	new THREE.MeshBasicMaterial({
+        		color: 0x0fff00,
+        		transparent: true,
+        		opacity: 0.2,
+        		side:THREE.DoubleSide}),
+        	new THREE.MeshBasicMaterial({wireframe:true})
+        );
+        scene.add(hullMesh);
+    }
+    
+    function createMesh(points,FaceOptions,LineOptions) {
+        var mesh = THREE.SceneUtils.createMultiMaterialObject(
+        		new THREE.ConvexGeometry(points), 
+        		[FaceOptions, LineOptions]
+        );
+        return mesh;
+    }
+    
+    function animatorAction()
+    {
+        spGroup.rotation.y = step;
+        hullMesh.rotation.y = step += 0.01;
+    }
+    
+    init();
+    render();
+</script>
+</body>
+</html>

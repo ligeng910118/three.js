@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+
+<html>
+
+<head>
+    <title>Example 02.05 - Custom geometry</title>
+    <script type="text/javascript" src="../libs/three.js"></script>
+
+    <script type="text/javascript" src="../libs/stats.js"></script>
+    <script type="text/javascript" src="../libs/dat.gui.js"></script>
+    <script type="text/javascript" src="../libs/miniQuery.js"></script>
+    <script type="text/javascript" src="../libs/TrackballControls.js"></script>
+    <style>
+        body {
+            /* set margin to 0 and overflow to hidden, to go fullscreen */
+            margin: 0;
+            overflow: hidden;
+        }
+    </style>
+</head>
+<body>
+
+<div id="Stats-output">
+</div>
+<!-- Div which will hold the Output -->
+<div id="WebGL-output">
+</div>
+
+<!-- Javascript code that runs our Three.js examples -->
+<script type="text/javascript">
+	var scene,camera,renderer,stats,step;
+    // once everything is loaded, we run our Three.js stuff.
+    var mesh;
+    var controlPoints = [];
+    var clock = new THREE.Clock();
+    var trackballControls;
+
+    function init() {
+    	step = 0;
+        stats = initStats("Stats-output");
+        // create a scene, that will hold all our elements such as objects, cameras and lights.
+        scene = initScene();
+        // create a camera, which defines where we're looking at.
+        camera = initCamera(scene,{x:30,y:30,z:50});
+        //create a axes
+        addAxes(scene);
+        // create a render and set the size
+        renderer = initRenderer();
+        // create the ground plane
+        addPlaneGeometry(scene);
+        // add subtle ambient lighting
+		addPointLight(scene,{x:30,y:30,z:50},true)
+        // add the output of the renderer to the html element
+		getWebGLOutPut("WebGL-output",renderer)
+        // call the render function
+        var vertices = [
+            new THREE.Vector3(1, 3, 1),
+            new THREE.Vector3(1, 3, -1),
+            new THREE.Vector3(1, -1, 1),
+            new THREE.Vector3(1, -1, -1),
+            new THREE.Vector3(-1, 3, -1),
+            new THREE.Vector3(-1, 3, 1),
+            new THREE.Vector3(-1, -1, -1),
+            new THREE.Vector3(-1, -1, 1)
+        ];
+
+        var faces = [
+            new THREE.Face3(0, 2, 1),
+            new THREE.Face3(2, 3, 1),
+            new THREE.Face3(4, 6, 5),
+            new THREE.Face3(6, 7, 5),
+            new THREE.Face3(4, 5, 1),
+            new THREE.Face3(5, 0, 1),
+            new THREE.Face3(7, 6, 2),
+            new THREE.Face3(6, 3, 2),
+            new THREE.Face3(5, 7, 0),
+            new THREE.Face3(7, 2, 0),
+            new THREE.Face3(1, 3, 4),
+            new THREE.Face3(3, 6, 4),
+        ];
+		//add custom geometry
+        customGeometry(
+        		vertices,
+        		faces,
+		);
+		//add init point
+		initPoint();  
+        //add trackball
+		trackball();
+    }
+    //add a trackball
+    function trackball()
+    {
+        trackballControls = new THREE.TrackballControls(camera);
+        trackballControls.rotateSpeed = 1.0;
+        trackballControls.zoomSpeed = 1.0;
+        trackballControls.panSpeed = 1.0;
+        trackballControls.staticMoving = true;
+    }
+
+    //add int point
+    function initPoint()
+    {
+    	var control =function (x, y, z) {
+            this.x = x;
+            this.y = y;
+            this.z = z;
+        };
+
+        controlPoints.push(new control(3, 5, 3));
+        controlPoints.push(new control(3, 5, 0));
+        controlPoints.push(new control(3, 0, 3));
+        controlPoints.push(new control(3, 0, 0));
+        controlPoints.push(new control(0, 5, 0));
+        controlPoints.push(new control(0, 5, 3));
+        controlPoints.push(new control(0, 0, 0));
+        controlPoints.push(new control(0, 0, 3));
+    }
+    
+    function animatorAction() {
+        trackballControls.update(clock.getDelta());
+    }
+    init();
+    render();
+
+</script>
+</body>
+</html>

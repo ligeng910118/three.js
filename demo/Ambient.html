@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+
+<html>
+
+<head>
+    <title>Example 03.01 - Ambient Light</title>
+    <script type="text/javascript" src="../libs/three.js"></script>
+
+    <script type="text/javascript" src="../libs/stats.js"></script>
+    <script type="text/javascript" src="../libs/dat.gui.js"></script>
+    <script type="text/javascript" src="../libs/miniQuery.js"></script>
+    <style>
+        body {
+            /* set margin to 0 and overflow to hidden, to go fullscreen */
+            margin: 0;
+            overflow: hidden;
+        }
+    </style>
+</head>
+<body>
+
+<div id="Stats-output">
+</div>
+<!-- Div which will hold the Output -->
+<div id="WebGL-output">
+</div>
+
+<!-- Javascript code that runs our Three.js examples -->
+<script type="text/javascript">
+	var scene,camera,renderer,stats,step,plane,light;
+    // once everything is loaded, we run our Three.js stuff.
+    var cube,sphere;
+    function init() {
+    	step = 0;
+        stats = initStats("Stats-output");
+        // create a scene, that will hold all our elements such as objects, cameras and lights.
+        scene = initScene();
+        // create a camera, which defines where we're looking at.
+        camera = initCamera(scene,{x:30,y:30,z:30},new THREE.Vector3(0, 0, 0));
+        // create a render and set the size
+        renderer = initRenderer();
+        // create the ground plane
+        addPlaneGeometry(scene);
+		// add cube
+        cube = addGeometry(
+        		scene,
+        		new THREE.BoxGeometry(4, 4, 4),
+        		new THREE.MeshLambertMaterial({color: 0xff0000}),
+        		{x:-4,y:13,z:0},
+        		true
+        );    
+		//add sphere
+		sphere = addGeometry(
+				scene,
+				new THREE.SphereGeometry(4, 20, 20),
+				new THREE.MeshLambertMaterial({color: 0x7777ff}),
+        		{x:20,y:0,z:2},
+        		true
+		);
+        // add subtle ambient lighting
+        light=addPointLight(scene,{x:-40,y:60,z:-10},true);
+        // add the output of the renderer to the html element
+        getWebGLOutPut("WebGL-output",renderer);
+        // call the render function
+        lightControl(light);
+    }
+      
+    var controls = new function () {
+        this.rotationSpeed = 0.02;
+        this.bouncingSpeed = 0.02;
+        this.ambientColor = "#0c0c0c";
+        this.disableSpotlight = false;
+    };
+    
+    function animatorAction()
+    {
+ 		  cube.rotation.x += controls.rotationSpeed;
+	      cube.rotation.y += controls.rotationSpeed;
+	      cube.rotation.z += controls.rotationSpeed;
+	      // bounce the sphere up and down
+	      step += controls.bouncingSpeed;
+	      sphere.position.x = 20 + ( 10 * (Math.cos(step)));
+	      sphere.position.y = 2 + ( 10 * Math.abs(Math.sin(step)));    		    	
+    }
+
+    init();
+    render();
+
+
+</script>
+</body>
+</html>

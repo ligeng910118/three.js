@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+
+<html>
+
+<head>
+    <title>Example 03.03 - Spot Light</title>
+    <script type="text/javascript" src="../libs/three.js"></script>
+
+    <script type="text/javascript" src="../libs/stats.js"></script>
+    <script type="text/javascript" src="../libs/dat.gui.js"></script>
+     <script type="text/javascript" src="../libs/miniQuery.js"></script>
+    <style>
+        body {
+            /* set margin to 0 and overflow to hidden, to go fullscreen */
+            margin: 0;
+            overflow: hidden;
+        }
+    </style>
+</head>
+<body>
+
+<div id="Stats-output">
+</div>
+<!-- Div which will hold the Output -->
+<div id="WebGL-output">
+</div>
+
+<!-- Javascript code that runs our Three.js examples -->
+<script type="text/javascript">
+	var phase = 0,invert = 1,step = 0;	
+	var controls = new function () {
+	    this.rotationSpeed = 0.03;
+	    this.bouncingSpeed = 0.03;
+	    this.ambientColor = "#1c1c1c";
+	    this.pointColor = "#ccffcc";
+	    this.intensity = 1;
+	    this.distance = 0;
+	    this.exponent = 30;
+	    this.angle = 0.1;
+	    this.shadowCameraVisible = false;
+	    this.castShadow = true;
+	    this.onlyShadow = false;
+	    this.target = "Plane";
+	    this.stopMovingLight = false;
+	};
+	var spotLight;
+	var stopMovingLight = false;
+	var scene,camera,renderer,stats,plane;
+	var ambientLight;
+    // once everything is loaded, we run our Three.js stuff.
+    var cube,sphere;
+    function init() {
+        stats = initStats("Stats-output");
+        // create a scene, that will hold all our elements such as objects, cameras and lights.
+        scene = initScene();
+        // create a camera, which defines where we're looking at.
+        camera = initCamera(scene);
+        // create a render and set the size
+        renderer = initRenderer();
+        // create the ground plane
+        customPlaneGeometry(
+        		scene,
+        		new THREE.PlaneGeometry(60, 20, 1, 1),
+        		new THREE.MeshLambertMaterial({color: 0xffffff}),
+        		{x:15,y:0,z:0},
+        		true);
+        // create a cube
+        cube = customeFastGeometry(
+        		scene,
+        		new THREE.BoxGeometry(4, 4, 4),
+        		new THREE.MeshLambertMaterial({color: 0xff7777}),
+        		{x:-4,y:3,z:0},
+        		true);
+      //create a shpere
+        sphere = customeFastGeometry(
+        		scene,
+        		new THREE.SphereGeometry(4, 20, 20),
+        		new THREE.MeshLambertMaterial({color: 0x7777ff}),
+        		{x:20,y:0,z:2},
+        		true);
+		addAxes(scene);
+        // add subtle ambient lighting
+        ambientLight = ambiColorLight(scene,"#1c1c1c");
+        // add spotlight for a bit of light
+        var spotLight0 = new THREE.SpotLight(0xcccccc);
+        spotLight0.position.set(-20, 30, 10);
+        spotLight0.shadowCameraVisible = true;
+        spotLight0.lookAt(plane);
+        scene.add(spotLight0);
+		
+        
+        
+        spotLight = spotMoreLight(
+        		scene,
+        		{x:-40,y:60,z:-10},
+        		true,
+        		{
+        			shadowCameraNear:2,
+        			shadowCameraFar:200,
+        			shadowCameraFov:30,
+        			target:plane,
+        			angle:0.4,
+        		},
+        		"#ffffff");
+        // add a small sphere simulating the pointlight
+        sphereLightMesh = customeFastGeometry(
+        		scene,
+        		new THREE.SphereGeometry(0.2),
+        		new THREE.MeshBasicMaterial({color: 0xac6c25}),
+        		{x:3,y:0,z:3},
+        		true);
+
+		
+        // add the output of the renderer to the html element
+        document.getElementById("WebGL-output").appendChild(renderer.domElement);
+        // call the render function
+        GUIControl();
+
+    }
+    
+    function GUIControl()
+    {
+        var gui = new dat.GUI();
+        gui.addColor(controls, 'ambientColor').onChange(function (e) {
+            ambientLight.color = new THREE.Color(e);
+        });
+
+        gui.addColor(controls, 'pointColor').onChange(function (e) {
+            spotLight.color = new THREE.Color(e);
+        });
+
+        gui.add(controls, 'angle', 0, Math.PI * 2).onChange(function (e) {
+            spotLight.angle = e;
+        });
+
+        gui.add(controls, 'intensity', 0, 5).onChange(function (e) {
+            spotLight.intensity = e;
+        });
+
+        gui.add(controls, 'distance', 0, 200).onChange(function (e) {
+            spotLight.distance = e;
+        });
+
+        gui.add(controls, 'exponent', 0, 100).onChange(function (e) {
+            spotLight.exponent = e;
+        });
+
+        gui.add(controls, 'shadowCameraVisible').onChange(function (e) {
+            spotLight.shadowCameraVisible = e;
+        });
+
+        gui.add(controls, 'castShadow').onChange(function (e) {
+            spotLight.castShadow = e;
+        });
+
+        gui.add(controls, 'onlyShadow').onChange(function (e) {
+            spotLight.onlyShadow = e;
+        });
+
+        gui.add(controls, 'target', ['Plane', 'Sphere', 'Cube']).onChange(function (e) {
+            console.log(e);
+            switch (e) {
+                case "Plane":
+                    spotLight.target = plane;
+                    break;
+                case "Sphere":
+                    spotLight.target = sphere;
+                    break;
+                case "Cube":
+                    spotLight.target = cube;
+                    break;
+            }
+
+        });
+
+        gui.add(controls, 'stopMovingLight').onChange(function (e) {
+            stopMovingLight = e;
+        });
+    }
+    
+	function animatorAction()
+	{
+        cube.rotation.x += controls.rotationSpeed;
+        cube.rotation.y += controls.rotationSpeed;
+        cube.rotation.z += controls.rotationSpeed;
+
+        // bounce the sphere up and down
+        step += controls.bouncingSpeed;
+        sphere.position.x = 20 + ( 10 * (Math.cos(step)));
+        sphere.position.y = 2 + ( 10 * Math.abs(Math.sin(step)));
+
+        // move the light simulation
+        if (!stopMovingLight) {
+            if (phase > 2 * Math.PI) {
+                invert = invert * -1;
+                phase -= 2 * Math.PI;
+            } else {
+                phase += controls.rotationSpeed;
+            }
+            sphereLightMesh.position.z = +(7 * (Math.sin(phase)));
+            sphereLightMesh.position.x = +(14 * (Math.cos(phase)));
+            sphereLightMesh.position.y = 10;
+
+            if (invert < 0) {
+                var pivot = 14;
+                sphereLightMesh.position.x = (invert * (sphereLightMesh.position.x - pivot)) + pivot;
+            }
+
+            spotLight.position.copy(sphereLightMesh.position);
+        }
+	}
+	
+    init();
+    render();
+
+
+</script>
+</body>
+</html>

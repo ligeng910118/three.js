@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+
+<html>
+
+<head>
+    <title>Example 06.02 - Advanced 3D geometries - Lathe</title>
+    <script type="text/javascript" src="../libs/three.js"></script>
+    <script type="text/javascript" src="../libs/stats.js"></script>
+    <script type="text/javascript" src="../libs/dat.gui.js"></script>
+    <script type="text/javascript" src="../libs/miniQuery.js"></script>
+    <style>
+        body {
+            /* set margin to 0 and overflow to hidden, to go fullscreen */
+            margin: 0;
+            overflow: hidden;
+        }
+    </style>
+</head>
+<body>
+
+<div id="Stats-output">
+</div>
+<!-- Div which will hold the Output -->
+<div id="WebGL-output">
+</div>
+
+<!-- Javascript code that runs our Three.js examples -->
+<script type="text/javascript">
+	var stats,scene,camera,renderer;
+	var step = 0;
+	var latheMesh,spGroup;
+    // once everything is loaded, we run our Three.js stuff.
+    var controls = new function () {
+            // we need the first child, since it's a multimaterial
+            this.segments = 12;
+            this.phiStart = 0;
+            this.phiLength = 2 * Math.PI;
+
+            this.redraw = function () {
+                scene.remove(latheMesh);
+                generatePoints(controls.segments, controls.phiStart, controls.phiLength);
+            };
+    };
+    function init() {
+        stats = initStats("Stats-output");
+        // create a scene, that will hold all our elements such as objects, cameras and lights.
+        scene = initScene();
+        // create a camera, which defines where we're looking at.
+        camera = initCamera(scene,{x:-30,y:40,z:60},new THREE.Vector3(10, 0, 0));
+        // create a render and set the size
+        renderer = initRenderer();
+        // add the output of the renderer to the html element
+        getWebGLOutPut("WebGL-output",renderer);
+        // call the render function
+        generatePoints(12, 2, 2 * Math.PI);
+        // setup the control gui
+        GUIControl();
+   }
+    
+    function GUIControl()
+    {
+        var gui = new dat.GUI();
+        gui.add(controls, 'segments', 0, 50).step(1).onChange(controls.redraw);
+        gui.add(controls, 'phiStart', 0, 2 * Math.PI).onChange(controls.redraw);
+        gui.add(controls, 'phiLength', 0, 2 * Math.PI).onChange(controls.redraw)
+    }
+    
+    function generatePoints(segments, phiStart, phiLength) {
+        // add 10 random spheres
+        var points = [];
+        var height = 5;
+        var count = 30;
+        for (var i = 0; i < count; i++) {
+            points.push(new THREE.Vector3((Math.sin(i * 0.2) + Math.cos(i * 0.3)) * height + 12, 0, ( i - count ) + count / 2));
+        }
+        // use the same points to create a LatheGeometry
+        latheMesh = ceateGeometry(
+        		new THREE.LatheGeometry(points, segments, phiStart, phiLength),
+        		new THREE.MeshNormalMaterial({side:THREE.DoubleSide,transparent: true,opacity: 0.5}),
+        		new THREE.MeshBasicMaterial({wireframe : true})
+        );
+        scene.add(latheMesh);
+    }
+    
+    function animatorAction()
+    {
+        latheMesh.rotation.y = step += 0.01;
+    }
+    
+    init();
+    render();
+</script>
+</body>
+</html>

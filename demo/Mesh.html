@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+
+<html>
+
+<head>
+    <title>Example 02.06 - Mesh Properties</title>
+    <script type="text/javascript" src="../libs/three.js"></script>
+
+    <script type="text/javascript" src="../libs/stats.js"></script>
+    <script type="text/javascript" src="../libs/dat.gui.js"></script>
+    <script type="text/javascript" src="../libs/miniQuery.js"></script>
+    <style>
+        body {
+            /* set margin to 0 and overflow to hidden, to go fullscreen */
+            margin: 0;
+            overflow: hidden;
+        }
+    </style>
+</head>
+<body>
+
+<div id="Stats-output">
+</div>
+<!-- Div which will hold the Output -->
+<div id="WebGL-output">
+</div>
+
+<!-- Javascript code that runs our Three.js examples -->
+<script type="text/javascript">
+	var scene,camera,renderer,stats,step;
+    // once everything is loaded, we run our Three.js stuff.
+    function init() {
+        stats = initStats("Stats-output");
+        // create a scene, that will hold all our elements such as objects, cameras and lights.
+        scene = initScene();
+        // create a camera, which defines where we're looking at.
+        camera = initCamera(scene);
+        // create a render and set the size
+        renderer = initRenderer();
+        // create the ground plane
+        addPlaneGeometry(scene)
+        // add subtle ambient lighting
+        addPointLight(scene,{x:-40,y:60,z:20},true);
+        // add the output of the renderer to the html element
+        getWebGLOutPut("WebGL-output",renderer);       
+        //add cube
+        cube=addGeometry(
+		scene,
+		new THREE.BoxGeometry(5, 8, 3),
+		new THREE.MeshLambertMaterial({color: 0x44ff44,side:THREE.DoubleSide}),
+		{x:0,y:4,z:0},
+		true);
+        // call the render function
+        step = 0;
+        var gui = new dat.GUI();
+        // add scale control
+        addControl(gui,controls,'scale',-10,10);
+     	// add position control
+        addPosition(gui,controls,'position',-10,10,cube);
+     	// add rotation control
+        addControl(gui,controls,'rotation',-10,10);
+     	// add translate control
+        addControlAndAction(gui,controls,'translate',-10,10,'translate');
+
+        gui.add(controls, 'visible');
+    }
+    
+    var controls = new function () {
+        this.scaleX = 1;
+        this.scaleY = 1;
+        this.scaleZ = 1;
+
+        this.positionX = 0;
+        this.positionY = 4;
+        this.positionZ = 0;
+
+        this.rotationX = 0;
+        this.rotationY = 0;
+        this.rotationZ = 0;
+        this.scale = 1;
+
+        this.translateX = 0;
+        this.translateY = 0;
+        this.translateZ = 0;
+
+        this.visible = true;
+
+        this.translate = function () {
+
+            cube.translateX(controls.translateX);
+            cube.translateY(controls.translateY);
+            cube.translateZ(controls.translateZ);
+
+            controls.positionX = cube.position.x;
+            controls.positionY = cube.position.y;
+            controls.positionZ = cube.position.z;
+        }
+    };
+    
+    function animatorAction() {
+        cube.visible = controls.visible;
+        cube.rotation.x = controls.rotationX;
+        cube.rotation.y = controls.rotationY;
+        cube.rotation.z = controls.rotationZ;
+        cube.scale.set(controls.scaleX, controls.scaleY, controls.scaleZ);
+    }
+    init();
+    render();
+
+
+</script>
+</body>
+</html>
